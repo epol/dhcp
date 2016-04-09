@@ -23,7 +23,7 @@ class Server(DhcpServer):
         server_identifier = packet.GetOption('server_identifier')
         if server_identifier is not None:
             if server_identifier is not []:
-                if server_identifier not in goodserver:
+                if server_identifier not in goodservers:
                     with open('badpackets.txt','a') as f:
                         f.writeline(packet.str())
                     print packet.str()
