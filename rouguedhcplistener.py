@@ -14,10 +14,12 @@ good_smac = [ 'f0:1c:2d:ef:cb:01', '00:30:48:94:71:12', '00:50:56:87:0f:99', '00
 
 pkts = []
 
-def get_dhcp_reply(pkt):
+def convert_options(pkt):
+    dic = { option[0] : option[1] for option in pkt[DHCP].options if type(option) is tuple }
+    return dic
+
+def get_dhcp_infos(pkt):
     if BOOTP not in pkt:
-        return None
-    if pkt[BOOTP].op != 2: #BOOTREPLY
         return None
     data = {}
     data['srcmac']=pkt[Ether].src
@@ -25,25 +27,18 @@ def get_dhcp_reply(pkt):
     data['giaddr']=pkt[BOOTP].giaddr
     data['server_id'] = 'None'
     data['vlan'] = 'None'
+    data['yiaddr'] = pkt[BOOTP].yiaddr
+    data['ciaddr'] = pkt[BOOTP].ciaddr
+    data['bootpop'] = pkt[BOOTP].op
     if DHCP in pkt:
-        options = pkt[DHCP].options
-        for option in options:
-            if option[0] == 'server_id':
-                data['server_id'] = option[1]
+        options = convert_options(pkt)
+        if 'server_id' in options:
+            data['server_id']=options['server_id']
+        if 'message-type' in options:
+            data['message-type']=options['message-type']
     if Dot1Q in pkt:
         data['vlan'] = pkt[Dot1Q].vlan
     return data
-
-def print_dhcp_reply(pkt):
-    data = get_dhcp_reply(pkt)
-    if data != None:
-        print "Source MAC: {srcmac}, Source IP: {srcip}, Gateway Address: {giaddr}, Server ID: {server_id}, VLAN: {vlan}".format(**data)
-        
-def print_bad_dhcp_reply(pkt):
-    data = get_dhcp_reply(pkt)
-    if data != None:
-        if data['server_id'] not in good_servers or data['srcmac'] not in good_smac:
-            print "Source MAC: {srcmac}, Source IP: {srcip}, Gateway Address: {giaddr}, Server ID: {server_id}, VLAN: {vlan}".format(**data)
 
 def format_data(data):
     if data is not None:
@@ -56,17 +51,22 @@ def print_data(data):
 
 def is_bad_data(data):
     if data is not None:
-        if data['server_id'] not in good_servers or data['srcmac'] not in good_smac:
-            return True
+        if data['message-type'] == 2: #DHCPOFFER
+            if data['server_id'] not in good_servers or data['srcmac'] not in good_smac:
+                return True
+        elif data['message-type'] == 3: #DHCPREQUEST
+            if data['server_id'] not in good_servers:
+                return True
     return False
 
 def process_packet(pkt):
-    data = get_dhcp_reply(pkt)
+    data = get_dhcp_infos(pkt)
     if is_bad_data(data):
         global pkts
         pkts.append(pkt)
         wrpcap("bad.cap",pkts)
-        return format_data(data)
+        if data['message-type'] == 2:  #DHCPOFFER
+            return format_data(data)
             
 #sniff(filter="udp port 67", prn=print_bad_dhcp_reply)
 #sniff(filter="udp port 67", prn=print_dhcp_reply)
