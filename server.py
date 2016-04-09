@@ -25,7 +25,8 @@ class Server(DhcpServer):
             if server_identifier is not []:
                 if server_identifier not in goodservers:
                     with open('badpackets.txt','a') as f:
-                        f.writeline(packet.str())
+                        f.write(packet.str())
+                        f.write('-----------------------------------------------------\n\n')
                     print packet.str()
 
     def HandleDhcpDecline(self, packet):
