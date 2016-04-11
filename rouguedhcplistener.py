@@ -26,6 +26,7 @@ def get_dhcp_infos(pkt):
     data['srcip']=pkt[IP].src
     data['giaddr']=pkt[BOOTP].giaddr
     data['server_id'] = 'None'
+    data['message-type']= 'None'
     data['vlan'] = 'None'
     data['yiaddr'] = pkt[BOOTP].yiaddr
     data['ciaddr'] = pkt[BOOTP].ciaddr
