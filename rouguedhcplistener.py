@@ -5,6 +5,8 @@ import pcap
 conf.use_pcap=True
 import scapy.arch.pcapdnet
 
+import commondis
+
 conf.iface="eth1"
 
 good_servers = [ '192.168.251.2', '192.168.251.3', '192.168.200.1', '192.168.201.1', '192.168.80.3', '192.168.80.4', '192.168.31.1' ]
@@ -13,33 +15,6 @@ good_smac = [ 'f0:1c:2d:ef:cb:01', '00:30:48:94:71:12', '00:50:56:87:0f:99', '00
 # core, gea, tea, firewal, wigo, wigo2, utopia, farpoint, versari
 
 pkts = []
-
-def convert_options(pkt):
-    dic = { option[0] : option[1] for option in pkt[DHCP].options if type(option) is tuple }
-    return dic
-
-def get_dhcp_infos(pkt):
-    if BOOTP not in pkt:
-        return None
-    data = {}
-    data['srcmac']=pkt[Ether].src
-    data['srcip']=pkt[IP].src
-    data['giaddr']=pkt[BOOTP].giaddr
-    data['server_id'] = 'None'
-    data['message-type']= 'None'
-    data['vlan'] = 'None'
-    data['yiaddr'] = pkt[BOOTP].yiaddr
-    data['ciaddr'] = pkt[BOOTP].ciaddr
-    data['bootpop'] = pkt[BOOTP].op
-    if DHCP in pkt:
-        options = convert_options(pkt)
-        if 'server_id' in options:
-            data['server_id']=options['server_id']
-        if 'message-type' in options:
-            data['message-type']=options['message-type']
-    if Dot1Q in pkt:
-        data['vlan'] = pkt[Dot1Q].vlan
-    return data
 
 def format_data(data):
     if data is not None:
