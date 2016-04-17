@@ -10,12 +10,18 @@ def get_dhcp_infos(pkt):
     if scapy.all.BOOTP not in pkt:
         return None
     data = {}
-    data['srcmac']=pkt[scapy.all.Ether].src
-    data['srcip']=pkt[scapy.all.IP].src
+    if scapy.all.Ether in pkt:
+        data['srcmac']=pkt[scapy.all.Ether].src
+    else:
+        data['srcmac']=None
+    if scapy.all.IP in pkt:
+        data['srcip']=pkt[scapy.all.IP].src
+    else:
+        data['srcip']=None
     data['giaddr']=pkt[scapy.all.BOOTP].giaddr
-    data['server_id'] = 'None'
-    data['message-type']= 'None'
-    data['vlan'] = 'None'
+    data['server_id'] = None
+    data['message-type']= None
+    data['vlan'] = None
     data['yiaddr'] = pkt[scapy.all.BOOTP].yiaddr
     data['ciaddr'] = pkt[scapy.all.BOOTP].ciaddr
     data['bootpop'] = pkt[scapy.all.BOOTP].op
