@@ -5,7 +5,7 @@ import pcap
 conf.use_pcap=True
 import scapy.arch.pcapdnet
 
-import commondis
+from commondis import *
 
 conf.iface="eth1"
 
