@@ -25,12 +25,15 @@ def get_dhcp_infos(pkt):
     data['yiaddr'] = pkt[scapy.all.BOOTP].yiaddr
     data['ciaddr'] = pkt[scapy.all.BOOTP].ciaddr
     data['bootpop'] = pkt[scapy.all.BOOTP].op
+    data['requested_addr'] = None
     if scapy.all.DHCP in pkt:
         options = convert_options(pkt)
         if 'server_id' in options:
             data['server_id']=options['server_id']
         if 'message-type' in options:
             data['message-type']=options['message-type']
+        if 'requested_addr' in options:
+            data['requested_addr'] = options['requested_addr']
     if scapy.all.Dot1Q in pkt:
         data['vlan'] = pkt[scapy.all.Dot1Q].vlan
     return data
