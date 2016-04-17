@@ -14,7 +14,6 @@ while 1:
     p = BOOTP(data)
     data = commondis.get_dhcp_infos(p)
     if data['message-type'] == 3: #DHCPREQUEST
-        print(data['server_id'])
         if data['server_id'] is not None and data['server_id'] not in good_servers:
             print("From gateway {giaddr} request for the address {requested_addr} and server_id {server_id}\n".format(**data))
 
