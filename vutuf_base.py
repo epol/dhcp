@@ -57,7 +57,7 @@ class Server(Base):
         return "<Server({name},{ip},good={good})>".format(name=self.name,ip=self.ip,mac=self.mac,good=self.good)
  
     def last_seen(self):
-        Session = sessionmakeer(bind=engine)
+        Session = sessionmaker(bind=engine)
         session = Session()
         return session.query(Packets).filter(server=self).order_by(Packet.date.desc()).one().date
 
@@ -100,7 +100,7 @@ class Packet(Base):
         self.vlan = data['vlan']
         self.date = datetime.datetime.now()
 
-        Session = sessionmakeer(bind=engine)
+        Session = sessionmaker(bind=engine)
         session = Session()
         servercount = session.query(Server).filter(ip=data['server_id']).count()
         if servercount > 1:
