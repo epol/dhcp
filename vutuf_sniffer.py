@@ -5,11 +5,13 @@ import pcap
 conf.use_pcap=True
 import scapy.arch.pcapdnet
 
+from sqlalchemy.orm import sessionmaker
+
 from commondis import *
 
 conf.iface="eth1"
 
-Session = sessionmakeer(bind=vutuf_base.engine)
+Session = sessionmaker(bind=vutuf_base.engine)
 session = Session()
 
 def process_packet(pkt):
