@@ -79,13 +79,13 @@ class Packet(Base):
         data = commondis.get_dhcp_infos(pkt)
         if data['server_id'] is None:
             raise PacketError("Not interesting")
-        if data[bootpop] == 1:  #BOOTREQUEST
+        if data['bootpop'] == 1:  #BOOTREQUEST
             if data['message-type'] == 3:  #DHCPREQUEST
                 self.type = 'request'
                 self.address = data['requested_addr']
             else:
                 raise PacketError("Not interesting")
-        elif data[bootp] == 2:  #BOOTREPLY
+        elif data['bootpop'] == 2:  #BOOTREPLY
             if data['message-type'] == 2:  #DHCPOFFER
                 self.type = 'offer'
                 self.address = ['yiaddr']
