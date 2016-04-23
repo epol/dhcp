@@ -28,11 +28,13 @@ This module provides database definitions and basic operations on his objects
 import os
 import sys
 import datetime
+import sqlalchemy
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.types import Boolean, Enum, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship,sessionmaker
+from sqlalchemy.orm import relationship,sessionmaker,backref
 from sqlalchemy import create_engine
+
 
 import commondis
 
@@ -65,10 +67,10 @@ class Packet(Base):
     type = Column(Enum('offer','request'))
     raw = Column(String(256), nullable=True)
     server_id = Column(Integer, ForeignKey('server.id'))
-    server = relationship(Server, backref = sqlalchemy.orm.backref('packets', order_by=id))
+    server = relationship(Server, backref = backref('packets', order_by=id))
     srcmac = Column(String(20), nullable=True)
-    chaddr = Column() #TODO
-    vlan = Colum(Integer, nullable = True)
+    chaddr = Column(String(20), nullable=True) #TODO
+    vlan = Column(Integer, nullable = True)
     gateway = Column(String(20), nullable = True)
     address = Column(String(20), nullable=True)
     date = Column(DateTime, nullable=False)
@@ -94,6 +96,7 @@ class Packet(Base):
         self.gateway = data['giaddr']
         self.raw = pkt
         self.srcmac = data['srcmac']
+        self.chaddr = data['chaddr']
         self.vlan = data['vlan']
         self.date = datetime.datetime.now()
 
