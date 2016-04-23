@@ -89,7 +89,7 @@ class Packet(Base):
         elif data['bootpop'] == 2:  #BOOTREPLY
             if data['message-type'] == 2:  #DHCPOFFER
                 self.type = 'offer'
-                self.address = ['yiaddr']
+                self.address = data['yiaddr']
             else:
                 raise PacketError("Not interesting")
         else:
