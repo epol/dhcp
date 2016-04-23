@@ -9,6 +9,9 @@ from sqlalchemy.orm import sessionmaker
 
 from commondis import *
 
+import vutuf_base
+from vutuf_base import Server,Packet
+
 conf.iface="eth1"
 
 Session = sessionmaker(bind=vutuf_base.engine)
