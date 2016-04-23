@@ -78,21 +78,21 @@ class Packet(Base):
     def __init__ (self,pkt):
         data = commondis.get_dhcp_infos(pkt)
         if data['server_id'] is None:
-            raise "not interesting"
+            raise PacketError("Not interesting")
         if data[bootpop] == 1:  #BOOTREQUEST
             if data['message-type'] == 3:  #DHCPREQUEST
                 self.type = 'request'
                 self.address = data['requested_addr']
             else:
-                raise "Not interesting"
+                raise PacketError("Not interesting")
         elif data[bootp] == 2:  #BOOTREPLY
             if data['message-type'] == 2:  #DHCPOFFER
                 self.type = 'offer'
                 self.address = ['yiaddr']
             else:
-                raise "Not interesting"
+                raise PacketError("Not interesting")
         else:
-            raise "Unknow bootp code"
+            raise PacketError("Unknow bootp code")
         self.gateway = data['giaddr']
         self.raw = pkt
         self.srcmac = data['srcmac']
@@ -104,7 +104,7 @@ class Packet(Base):
         session = Session()
         servercount = session.query(Server).filter(ip=data['server_id']).count()
         if servercount > 1:
-            raise "Too many servers with the same IP"
+            raise PacketError("Too many servers with the same IP")
         elif servercount == 1:
             server = session.query(Server).filter(ip=data['server_id']).one()
         else:
@@ -119,7 +119,14 @@ class Packet(Base):
 
     def is_good(self):
         return self.server.good
-        
+
+class PacketError(Exception):
+    def __init__(self,reason):
+        self.reason = reason
+    def __str__(self):
+        return repr(self.reason)
+
+    
 Base.metadata.create_all(engine)
 
 
