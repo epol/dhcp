@@ -24,7 +24,7 @@ def get_dhcp_infos(pkt):
     data['vlan'] = None
     data['yiaddr'] = pkt[scapy.all.BOOTP].yiaddr
     data['ciaddr'] = pkt[scapy.all.BOOTP].ciaddr
-    data['chaddr'] = pkt[scapy.all.BOOTP].chaddr
+    data['chaddr'] = pkt[scapy.all.BOOTP].chaddr[:pkt[scapy.all.BOOTP].hlen].encode('hex')
     data['bootpop'] = pkt[scapy.all.BOOTP].op
     data['requested_addr'] = None
     if scapy.all.DHCP in pkt:

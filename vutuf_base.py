@@ -30,7 +30,7 @@ import sys
 import datetime
 import sqlalchemy
 from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.types import Boolean, Enum, DateTime
+from sqlalchemy.types import Boolean, Enum, DateTime, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship,sessionmaker,backref
 from sqlalchemy import create_engine
@@ -65,7 +65,7 @@ class Packet(Base):
     __tablename__ = 'packet'
     id = Column(Integer, primary_key=True)
     type = Column(Enum('offer','request'))
-    raw = Column(String(256), nullable=True)
+    raw = Column(LargeBinary(256), nullable=True)
     server_id = Column(Integer, ForeignKey('server.id'))
     server = relationship(Server, backref = backref('packets', order_by=id))
     srcmac = Column(String(20), nullable=True)
@@ -94,7 +94,7 @@ class Packet(Base):
         else:
             raise PacketError("Unknow bootp code")
         self.gateway = data['giaddr']
-        self.raw = pkt
+        self.raw = str(pkt)
         self.srcmac = data['srcmac']
         self.chaddr = data['chaddr']
         self.vlan = data['vlan']
@@ -102,11 +102,11 @@ class Packet(Base):
 
         Session = sessionmaker(bind=engine)
         session = Session()
-        servercount = session.query(Server).filter(ip=data['server_id']).count()
+        servercount = session.query(Server).filter(Server.ip==data['server_id']).count()
         if servercount > 1:
             raise PacketError("Too many servers with the same IP")
         elif servercount == 1:
-            server = session.query(Server).filter(ip=data['server_id']).one()
+            server = session.query(Server).filter(Server.ip==data['server_id']).one()
         else:
             server = Server(data['server_id'],data['server_id'],False)
             session.add(server)
