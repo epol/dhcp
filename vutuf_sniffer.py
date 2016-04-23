@@ -10,18 +10,15 @@ from sqlalchemy.orm import sessionmaker
 from commondis import *
 
 import vutuf_base
-from vutuf_base import Server,Packet
+from vutuf_base import Server,Packet,PacketError,session
 
 conf.iface="eth1"
-
-Session = sessionmaker(bind=vutuf_base.engine)
-session = Session()
 
 def process_packet(pkt):
     global session
     try:
         packet = Packet(pkt)
-    except:
+    except PacketError:
         pass
     else:
         session.add(packet)
@@ -29,6 +26,5 @@ def process_packet(pkt):
 
 sniff(filter="udp port 67", prn=process_packet)
 
-session.close()
 
                                                                                                                                 

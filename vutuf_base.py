@@ -32,13 +32,15 @@ import sqlalchemy
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.types import Boolean, Enum, DateTime, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship,sessionmaker,backref
+from sqlalchemy.orm import relationship,sessionmaker,backref,scoped_session
 from sqlalchemy import create_engine
 
 
 import commondis
 
 engine = create_engine('sqlite:///vutuf.db')
+session = scoped_session(sessionmaker(bind=engine))
+
 Base = declarative_base()
  
 class Server(Base):
@@ -54,12 +56,11 @@ class Server(Base):
         self.good = good
     
     def __repr__(self):
-        return "<Server({name},{ip},good={good})>".format(name=self.name,ip=self.ip,mac=self.mac,good=self.good)
+        return "<Server({name},{ip},good={good})>".format(name=self.name,ip=self.ip,good=self.good)
  
     def last_seen(self):
-        Session = sessionmaker(bind=engine)
-        session = Session()
-        return session.query(Packets).filter(server=self).order_by(Packet.date.desc()).one().date
+        global session
+        return session.query(Packet).filter(Packet.server==self).order_by(Packet.date.desc()).first().date
 
 class Packet(Base):
     __tablename__ = 'packet'
@@ -100,8 +101,7 @@ class Packet(Base):
         self.vlan = data['vlan']
         self.date = datetime.datetime.now()
 
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        global session
         servercount = session.query(Server).filter(Server.ip==data['server_id']).count()
         if servercount > 1:
             raise PacketError("Too many servers with the same IP")
@@ -111,7 +111,6 @@ class Packet(Base):
             server = Server(data['server_id'],data['server_id'],False)
             session.add(server)
             session.commit()
-        session.close()
         self.server = server
 
     def __repr__(self):
@@ -131,4 +130,5 @@ Base.metadata.create_all(engine)
 
 
 def get_recent_bad_servers(delta=datetime.timedelta(days=1)):
-    pass
+    global session
+    return session.query(Server).filter(Server.good==False).join(Server.packets).filter(Packet.date>delta).order_by(Packet.date.desc()).all()
