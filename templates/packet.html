@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Index{% endblock %}
+{% block packetli %}class="active"{% endblock %}
+
+{% block content %}
+
+<ul>
+  <li>Date: {{ packet.date }}</li>
+  <li>Server: <a href="{{ url_for('server',servername=packet.server.name) }}">{{ packet.server.name }}</a></li>
+  <li>Gateway: {{ packet.gateway }}</li>
+  <li>VLAN: {{ packet.vlan }}</li>
+  <li>Type: {{ packet.type }}</li>
+  <li>Address: {{ packet.address }}</li>
+  <li>Client hardware address: {{ packet.chaddr }}</li>
+  <li>Source MAC: {{ packet.srcmac }}</li>
+</ul>
+
+{% endblock %}
+

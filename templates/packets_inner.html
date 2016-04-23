@@ -1,0 +1,18 @@
+<table class="table table-hover table-striped">
+  <thead>
+    <tr><th>Date</th><th>Type</th><th>Server name</th><th>Gateway</th><th>VLAN</th><th>Address</th></tr>
+  </thead>
+  <tbody>
+    {% for packet in packets %}
+    <tr {% if packet.is_good() == True %}class=success{% else %}class=danger{% endif %}>
+      <td><a href="{{ url_for('packet',id=packet.id) }}">{{ packet.date }}</a></td>
+      <td>{{ packet.type }}</td>
+      <td>{{ packet.server.name }}</td>
+      <td>{{ packet.gateway }}</td>
+      <td>{{ packet.vlan }}</td>
+      <td>{{ packet.address }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
