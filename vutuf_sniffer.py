@@ -30,5 +30,5 @@ def process_packet(pkt):
 sniff(filter="udp port 67", prn=process_packet)
 
 session.close()
-s.close()
+
                                                                                                                                 
