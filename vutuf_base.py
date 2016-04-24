@@ -78,6 +78,8 @@ class Packet(Base):
     
     def __init__ (self,pkt):
         data = commondis.get_dhcp_infos(pkt)
+        if data is None:
+            raise PacketError("Not BOOTP packet")
         if data['server_id'] is None:
             raise PacketError("Not interesting")
         if data['bootpop'] == 1:  #BOOTREQUEST
