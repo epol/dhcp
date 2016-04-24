@@ -16,7 +16,8 @@ def server_list():
 @app.route('/server/<servername>')
 def server(servername):
     server = session.query(Server).filter(Server.name==servername).one()
-    return render_template('server.html',server=server,packets=server.packets)
+    packets = session.query(Packet).filter(Packet.server_id==server.id).order_by(Packet.date.desc()).all()
+    return render_template('server.html',server=server,packets=packets)
 
 @app.route('/packet')
 def packet_list():
