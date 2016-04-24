@@ -30,7 +30,7 @@ import sys
 import datetime
 import sqlalchemy
 from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.types import Boolean, Enum, DateTime, LargeBinary
+from sqlalchemy.types import Boolean, Enum, DateTime, LargeBinary,Interval
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship,sessionmaker,backref,scoped_session
 from sqlalchemy import create_engine
@@ -65,12 +65,12 @@ class Server(Base):
 class Packet(Base):
     __tablename__ = 'packet'
     id = Column(Integer, primary_key=True)
-    type = Column(Enum('offer','request'))
+    type = Column(Enum('offer','request'),nullable=False)
     raw = Column(LargeBinary(256), nullable=True)
     server_id = Column(Integer, ForeignKey('server.id'))
-    server = relationship(Server, backref = backref('packets', order_by=id))
+    server = relationship(Server, backref = backref('packets', order_by=id,cascade='all, delete-orphan'))
     srcmac = Column(String(20), nullable=True)
-    chaddr = Column(String(20), nullable=True) #TODO
+    chaddr = Column(String(20), nullable=True)
     vlan = Column(Integer, nullable = True)
     gateway = Column(String(20), nullable = True)
     address = Column(String(20), nullable=True)
@@ -97,12 +97,17 @@ class Packet(Base):
         else:
             raise PacketError("Unknow bootp code")
         self.gateway = data['giaddr']
-        self.raw = str(pkt)
         self.srcmac = data['srcmac']
         self.chaddr = data['chaddr']
         self.vlan = data['vlan']
         self.date = datetime.datetime.now()
 
+        global config
+        if config.save_raw:
+            self.raw = str(pkt)
+        else:
+            self.raw = None
+        
         global session
         servercount = session.query(Server).filter(Server.ip==data['server_id']).count()
         if servercount > 1:
@@ -127,10 +132,65 @@ class PacketError(Exception):
     def __str__(self):
         return repr(self.reason)
 
+
+class Config(Base):
+    __tablename__ = 'config'
+    id = Column(Integer, primary_key=True)
+    save_raw = Column(Boolean, nullable=False)
+    goodpacket_ttl = Column(Interval,nullable=False)
+    badpacket_ttl = Column(Interval,nullable=False)
     
+    def __init__(self, save_raw=True, goodpacket_ttl=datetime.timedelta(days=1), badpacket_ttl=datetime.timedelta(days=30)):
+        self.save_raw=save_raw
+        self.goodpacket_ttl = goodpacket_ttl
+        self.badpacket_ttl = badpacket_ttl
+        
+    def __repr__(self):
+        return "<Config(id={id},save_raw={save_raw},goodpacket_ttl={goodpacket_ttl},badpacket_ttl={badpacket_ttl})>".format(id=self.id,save_raw=self.save_raw,goodpacket_ttl=self.goodpacket_ttl,badpacket_ttl=self.badpacket_ttl)
+
 Base.metadata.create_all(engine)
 
+class ConfigError(Exception):
+    def __init__(self,reason):
+        self.reason = reason
+    def __str__(self):
+        return repr(self.reason)
+
+    
+def get_config(id=None):
+    global session
+    if id is None:
+        query = session.query(Config)
+        if query.count() ==0:
+            config = Config()
+            session.add(config)
+            session.commit()
+            return config
+        elif query.count() ==1:
+            return query.one()
+        else:
+            raise ConfigError("More than one configuration present, please specify an id")
+    else:
+        return session.query(Config).filter(Config.id==id).one()
 
 def get_recent_bad_servers(delta=datetime.timedelta(days=1)):
     global session
     return session.query(Server).filter(Server.good==False).join(Server.packets).filter(Packet.date>delta).order_by(Packet.date.desc()).all()
+
+def clean_packets():
+    global config
+    global session
+    for p in session.query(Packet).filter(Packet.date<datetime.datetime.now()-config.goodpacket_ttl).join(Packet.server).filter(Server.good==True).all():
+        session.delete(p)
+    for p in session.query(Packet).filter(Packet.date<datetime.datetime.now()-config.badpacket_ttl).join(Packet.server).filter(Server.good==False).all():
+        session.delete(p)
+    session.commit()
+
+
+
+
+try:
+    config = get_config()
+except:
+    config = None
+
