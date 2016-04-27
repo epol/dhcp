@@ -46,5 +46,5 @@ def process_packet(pkt):
             
 #sniff(filter="udp port 67", prn=print_bad_dhcp_reply)
 #sniff(filter="udp port 67", prn=print_dhcp_reply)
-sniff(filter="udp port 67", prn=process_packet)
+sniff(filter="udp port 67", prn=process_packet,store=False)
                                                                                                                                 

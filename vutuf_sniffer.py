@@ -24,7 +24,7 @@ def process_packet(pkt):
         session.add(packet)
         session.commit()
 
-sniff(filter="udp port 67", prn=process_packet)
+sniff(filter="udp port 67", prn=process_packet, store=False)
 
 
                                                                                                                                 
