@@ -18,8 +18,8 @@
     <div class="col-md-2 col-md-offset-1 bg-primary">
       Server:
     </div>
-    <div class="col-md-9 bg-info">
-      <a href="{{ url_for('server',servername=packet.server.name) }}">{{ packet.server.name }}</a></li>
+    <div class="col-md-9 {% if packet.server.good %}bg-success{% else %}bg-danger{% endif %}">
+      <a href="{{ url_for('server',serverip=packet.server.ip) }}">{{ packet.server.name }}</a></li>
     </div>
   </div>
   <div class="row">

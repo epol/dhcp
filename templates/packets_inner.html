@@ -7,7 +7,7 @@
     <tr {% if packet.is_good() == True %}class=success{% else %}class=danger{% endif %}>
       <td><a href="{{ url_for('packet',id=packet.id) }}">{{ packet.date }}</a></td>
       <td>{{ packet.type }}</td>
-      <td>{{ packet.server.name }}</td>
+      <td><a href="{{ url_for('server',serverip=packet.server.ip) }}">{{ packet.server.name }}</a></td>
       <td>{{ packet.gateway }}</td>
       <td>{{ packet.vlan }}</td>
       <td>{{ packet.address }}</td>

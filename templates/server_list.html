@@ -12,7 +12,7 @@
   <tbody>
     {% for server in servers %}
     <tr {% if server.good  %}class=success{% else %}class=danger{% endif %}>
-      <td><a href="{{ url_for('server',servername=server.name) }}">{{ server.name }}</a></td>
+      <td><a href="{{ url_for('server',serverip=server.ip) }}">{{ server.name }}</a></td>
       <td>{{ server.ip }}</td>
       <td>{{ server.good }}</td>
       <td>{{ server.last_seen() }}</td>
