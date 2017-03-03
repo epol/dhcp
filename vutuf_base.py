@@ -33,7 +33,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.types import Boolean, Enum, DateTime, LargeBinary,Interval
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship,sessionmaker,backref,scoped_session
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine,func
 
 
 import commondis
@@ -60,7 +60,10 @@ class Server(Base):
  
     def last_seen(self):
         global session
-        return session.query(Packet).filter(Packet.server==self).order_by(Packet.date.desc()).first().date
+        try:
+            return session.query(Packet).filter(Packet.server==self).order_by(Packet.date.desc()).first().date
+        except:
+            return datetime.datetime.fromtimestamp(0)
 
 class Packet(Base):
     __tablename__ = 'packet'
@@ -186,7 +189,13 @@ def clean_packets():
         session.delete(p)
     session.commit()
 
-
+def clean_servers():
+    global config
+    global session
+    
+    for s in session.query(Server).filter(Server.good==False).outerjoin(Server.packets).group_by(Server).having(func.count_(Server.packets) == 0).all():
+        session.delete(s)
+    session.commit()
 
 
 try:
